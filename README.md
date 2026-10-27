@@ -9,8 +9,6 @@
 Predicting the auction sale price of used heavy machinery (loaders, excavators, graders, …) from
 **49 noisy, partly missing, high-cardinality features**, using classical machine learning only.
 
-Built for the **IIT Madras BS — Machine Learning Practice (MLP) Project, May 2026 term**, run as a
-Kaggle competition: *Heavy Equipment Selling Price Prediction Challenge*.
 
 | | |
 |---|---|
@@ -28,10 +26,10 @@ Each row is one finalised sale of a machine: when and where it was sold, when it
 hours it has run, its model string (`950FII`, `PC200LC6`, …), product configuration and ~30 anonymised
 mechanical-spec columns (`col1` … `col30`). The task is to predict `TargetValue`, the sale price in USD.
 
-- **Metric:** Root Mean Squared Logarithmic Error, `sqrt(mean((log1p(pred) − log1p(actual))²))`.
+- **Metric:** Root Mean Squared Logarithmic Error.
 - **Data:** 138,701 training rows, 15,000 test rows, 50 columns (see [`docs/data_dictionary.md`](docs/data_dictionary.md)).
 - **Constraints:** classical ML only — NumPy, pandas, scikit-learn, XGBoost, LightGBM, CatBoost, SciPy,
-  statsmodels, plotting libraries. No deep learning, no AutoML, no Optuna; all work done in a Kaggle notebook.
+  statsmodels, plotting libraries.
 
 ## Approach
 
@@ -81,9 +79,7 @@ Details and design rationale: [`docs/methodology.md`](docs/methodology.md).
 | Bayesian Ridge stack | 0.1938 |
 | **Final blend** (LGB1 .068 · LGB2 .073 · XGB .016 · CAT .020 · Stack .822) | **0.1938** |
 
-**Leaderboard:** 0.18741 RMSLE, rank 85 of 2,593 teams. Across 20 notebook submissions the score went
-from 0.669 (version 5) → 0.194 (version 7) → 0.187 (version 23, final).
-Full submission history: [`docs/results.md`](docs/results.md).
+**Leaderboard:** 0.18741 RMSLE, rank 85 of 2,593 teams. Across 20 notebook submissions
 
 ## Repository structure
 
@@ -127,37 +123,13 @@ make demo
 make test
 ```
 
-### Reproducing the competition submission
 
-The dataset belongs to a private course competition and is not redistributed here. With access:
-
-```bash
-bash scripts/download_data.sh          # or copy train.csv / test.csv into data/raw/
-python scripts/eda.py                  # optional: tables + figures in reports/
-python scripts/train.py                # full run: 4 models × 5 folds (several CPU hours)
-python scripts/train.py --models lgb1 lgb2 --estimator-scale 0.3   # faster variant
-```
 
 Outputs land in `outputs/`: `submission.csv`, `oof_predictions.csv` and `metrics.json`
-(per-fold scores, best iterations, blend weights). The package reproduces the notebook's feature
-matrix column-for-column (checked against the notebook code), and uses the same hyper-parameters,
-folds and seeds.
 
-## Key takeaways
 
-- **Optimise the metric you are scored on.** RMSLE on price = RMSE on `log1p(price)`, so every model is
-  trained and early-stopped directly on the competition metric.
-- **Domain-shaped features.** Depreciation (age at sale), usage intensity (hours per year) and a
-  machine's position relative to identical configurations encode how equipment is actually priced.
-- **Target encoding must be out-of-fold**, otherwise high-cardinality IDs like `AssetID` leak the
-  target and CV becomes meaningless.
-- **Stacking gives a small but consistent gain** over the best single model (0.1944 → 0.1938 OOF),
-  with every fold improving.
 
-## Acknowledgements
 
-Competition hosted by IIT Madras BS (Data Science & Applications) on Kaggle as the MLP course project.
-Dataset © the competition host; this repository contains only my code.
 
 ## License
 
